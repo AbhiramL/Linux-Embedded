@@ -1,0 +1,32 @@
+Cross Compiler generation and setup:
+
+
+-Get crosstool to build the cross-compiler toolchain
+
+
+sudo apt install build-essential git autoconf bison flex texinfo help2man gawk libtool-bin \libncurses5-dev unzip
+
+git clone https://github.com/crosstool-ng/crosstool-ng
+
+cd crosstool-ng/
+
+git checkout crosstool-ng-1.26.0
+
+
+-Generate configure script and files for crosstool
+
+
+./bootstrap
+
+./configure --enable-local    <---[configure crosstool to work locally rather than install it globally]
+
+make
+
+
+-Load CPU sample, Pi3 model b has a ARMV8 cortexA53 processor, in crosstool's samples: armv8-rpi3-linux-gnueabihf
+
+
+./ct-ng __________            <---[place sample here(ex. arm-cortex_a8-linux-gnueabi), use ./ct-ng list-samples]
+
+./ct-ng menuconfig
+

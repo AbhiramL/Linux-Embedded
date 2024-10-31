@@ -1,32 +1,72 @@
-Cross Compiler generation and setup:
+Cross compiler document
 
+Method 1: Cross Compiler generation and setup from scratch:
+1. Building Cross compiling toolchain 
 
--Get crosstool to build the cross-compiler toolchain
-
+-using crosstool-ng-1.26.0(stable version)
 
 sudo apt install build-essential git autoconf bison flex texinfo help2man gawk libtool-bin \libncurses5-dev unzip
-
 git clone https://github.com/crosstool-ng/crosstool-ng
-
 cd crosstool-ng/
-
 git checkout crosstool-ng-1.26.0
 
-
--Generate configure script and files for crosstool
-
+-building crosstool from git repo, installing locally, configure toolchain 
 
 ./bootstrap
-
-./configure --enable-local    <---[configure crosstool to work locally rather than install it globally]
-
+./configure --enable-local
 make
-
-
--Load CPU sample, Pi3 model b has a ARMV8 cortexA53 processor, in crosstool's samples: armv8-rpi3-linux-gnueabihf
-
-
-./ct-ng __________            <---[place sample here(ex. arm-cortex_a8-linux-gnueabi), use ./ct-ng list-samples]
-
+./ct-ng __________    <--- [place sample here(ex. arm-cortex_a8-linux-gnueabi), use ./ct-ng list-samples]
 ./ct-ng menuconfig
+
+-set the following: 
+*************************************************************************
+In Path and misc options: 
+• If not set yet, enable Try features marked as EXPERIMENTAL
+In Target options:
+• Set Use specific FPU (ARCH_FPU) to vfpv3.
+• Set Floating point to hardware (FPU).
+In Toolchain options:
+• Set Tuple's vendor string (TARGET_VENDOR) to training.
+• Set Tuple's alias (TARGET_ALIAS) to arm-linux. This way, we will be able to use the compiler as arm-linux-gcc instead of arm-training-linux-musleabihf-gcc, which is much longer to type.
+In Operating System:
+• Set Version of linux to the closest, but older version to 6.6. It’s important that the kernel headers used in the toolchain are not more recent than the kernel that will run on the board (v6.6).
+In C-library:
+• If not set yet, set C library to musl (LIBC_MUSL)
+• Keep the default version that is proposed
+In C compiler:
+• Set Version of gcc to 13.2.0.
+• Make sure that C++ (CC_LANG_CXX) is enabled
+In Debug facilities:
+• Remove all options here. Some debugging tools can be provided in the toolchain, but they can also be built by filesystem building tools
+*****************************************************************************
+
+-build toolchain
+ 
+./ct-ng build
+
+-testing toolchain, requires toolchain dir to be added to path variable
+
+export PATH=$PATH:/home/kishore/x-tools/arm-training-linux-musleabihf/bin/
+nano hello.c   <--- make a hello.c
+arm-linux-gcc -o hello.o hello.c
+file hello.o  <--- should return a ARM exe file
+
+------------------ additl. testing with qemu
+sudo apt install qemu-user
+find ~/x-tools -name ld-musl-armhf.so.1   <---[ shared library loader compiled for ARM, would likely return ~/x-tools/arm-training-linux-musleabihf/arm-training-linux-musleabihf/sysroot/lib/ld-musl-armhf.so.1 ]
+qemu-arm -L ~/x-tools/arm-training-linux-musleabihf/arm-training-linux-musleabihf/sysroot \hello
+-------------------
+
+cd crosstool-ng/
+./ct-ng clean
+
+
+
+Method 2: Buildroot
+
+-using beaglebone_defconfig will set up default cross compiler toolchain
+-toolchain to use glibc, gcc 13.x, binutils 2.40
+
+
+
 

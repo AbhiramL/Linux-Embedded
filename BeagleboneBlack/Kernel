@@ -1,14 +1,64 @@
 Setting up linux kernel:
 
+Method 1: Fetching your own
 
--Kernel 6.12 has fully preemptable kernel
+-Kernel 6.12 has fully preemptable kernel by the way.
+
+-get linux kernel from https://www.kernel.org/ , stable version is best
+-when compiling kernel, need to specify ARCH and CROSS_COMPILE or it will compile using gcc and current architecture. 
+
+export PATH=$PATH:/home/kishore/x-tools/arm-training-linux-musleabihf/bin
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-
+
+-above statements puts the settings of compilation in enviornment variables, must be run before compiling if the terminal is reset.
+
+cd linux/
+make menuconfig
+make omap2plusdefconfig
+--------NEED TO INCLUDE OTHER SETTINGS
+-to make kernel after config:
+
+make -j6 all    
+
+-j6 is number of jobs to be done in parallel(6)
+-running make all again will show where zimage and image of the kernel is
+-if sdcard, partion remaining space, place zimage and image in boot partition
+-.dtb in ~/linux/arch/arm/boot/dts/ti/omap/am335x-boneblack.dtb, if for another board, look in dts folder for vendor name, then board.
+
+-copy zImage(ARM32 systems) or Image(ARM64 systems) and .dtb file to fat partition(the boot partition)
+-boot up device and interupt the process to start modifying env variables
+-must load zImage at an address that is guaranteed to be free and not in use by other system components, and another address that will not be in conflict with zImage for the .dtb file
+
+-Load the kernel image(fatload is a uboot command to get a file from device)
+-Load the device tree blob
+-Boot the kernel
+
+setenv bootargs console=ttyS0,115200n8    <--so we can see kernel msg on cmd line
+saveenv
+
+fatload mmc 0:1 0x81000000 zImage
+fatload mmc 0:1 0x82000000 am335x-boneblack.dtb
+bootz 0x81000000 - 0x82000000
+
+-should see kernel boot up and panic.
+
+-ease of use: 
+setenv bootcmd 'fatload mmc 0:1 0x81000000 zImage; fatload mmc 0:1 0x82000000 am335x-boneblack.dtb; bootz 0x81000000 - 0x82000000'
+saveenv
 
 
-git clone https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
-cd linux
-git checkout v6.12     (as of 10/29/24, v6.12-rc5 is the latest and only version of 6.12)
 
 
--For raspberry pi 3 model b:
+Method 2: Using buildroot
+
+-make beaglebone_defconfig
+-to produce kernel with fs creation capability, you need to enable:
+
+target packages>filesystem and flash utilities>e2fsprogs & enable dofstools (all options) dofstools needs glibc not musl
+
+make linux-menuconfig, go to filesystems, NLS, enable cp850(Europe) and other settings like vfat support
+
+
 
 

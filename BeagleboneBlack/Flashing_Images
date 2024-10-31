@@ -1,0 +1,49 @@
+Flashing image to BBB:
+
+Method 1: Partition sd card yourself and load files into partitions
+
+preparing micro SD card
+
+dmesg    <--- shows system messages, find sd card (sdb or mmcblk0, assumed sdb)
+lsblk    <--- shows devices, if partition of the sd card is mounted, use sudo umount to unmount
+sudo dd if=/dev/zero of=/dev/sdb bs=1M count=16   <--- wipes sd card
+sudo cfdisk /dev/sdb
+
+-If cfdisk asks you to Select a label type, choose dos. This corresponds to traditional partitions tables that DOS/Windows would understand. gpt partition tables are needed for disks bigger than 2 TB.
+-In the cfdisk interface, delete existing partitions, then create only one primary partition, starting from the
+beginning, with the following properties:
+• Size: 64MB big
+• Type: W95 FAT32 (LBA) (c choice)
+• Bootable flag enabled
+Press Write when you are done.
+
+-write FAT32 filesystem on new FAT32 partition
+
+sudo mkfs.vfat -a -F 32 -n boot /dev/sdb1    <--- sdb1 is partition 
+
+-mount and copy uboot files
+
+sudo mkdir -p /mnt/sdcard
+sudo mount /dev/sdb1 /mnt/sdcard
+cd ~/u-boot/
+sudo cp MLO u-boot.img /mnt/sdcard
+sudo umount /mnt/sdcard
+
+-place sd card on board, reset board, observe changes on serial port on boot up
+
+-Note: create 2nd partition for rootfs(do cfdisk and later mkfs.ext4 on partition), and use busybox to create fs on the partition
+
+
+
+Method 2: Using buildroot generated sdcard.img
+
+1. do: sudo dd if=buildroot/output/images/sdcard.img of=/dev/[name of sdcard device, ex. sdc] bs=4M status=progress    
+2. boot into sdcard on BBB
+3. using cfdisk resize the 2nd partition by adding ~600mb-1Gb, write changes to disk
+4. save sdcard.img on the 2nd partition (mount partition and cp file to there)
+5. boot into sdcard on BBB, sdcard.img should be in the root folder
+6. run command on step 1 but the 'of' target is mmcblk1, skip adding the status flag
+
+
+
+

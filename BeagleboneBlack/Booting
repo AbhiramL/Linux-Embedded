@@ -1,0 +1,158 @@
+Booting through tftp or nfs:
+
+1.Working with TFTP server to make a network bootable kernel
+
+hostname -I   <---host ip
+arp -a 	      <---connected devices, should see BBB's ip later
+
+
+sudo apt install tftpd-hpa
+sudo nano /etc/default/tftpd-hpa
+
+-change the directory to the tftp working directory that will have the new zimage and .dtb
+************************sample tftpd-hpa file
+# /etc/default/tftpd-hpa
+
+TFTP_USERNAME="tftp"
+TFTP_DIRECTORY="/home/kishore/tftpBBB"
+TFTP_ADDRESS="0.0.0.0:69"
+TFTP_OPTIONS="--secure"
+
+*************************
+
+
+sudo chmod -R 777 tftpBBB/
+sudo systemctl restart tftpd-hpa
+sudo nc -u -l -p TFTP_ADDRESS   <--found in the tftpd-hpa file, last 2 numbers, this is a confirmation tftp works
+
+
+****using usb-ethernet cable for BBB****
+host:
+sudo systemctl restart tftpd-hpa
+
+BBB tftp:
+setenv ethprime usb_ether
+setenv usbnet_devaddr f8:dc:7a:00:00:02     <---change to address in uboot enviornment
+setenv usbnet_hostaddr f8:dc:7a:00:00:01
+
+-if you ping serverip, you can run ifconfig on host and a new device will be seen on PC
+-you must configure the host network:
+nmcli con add type ethernet ifname XXXX ip4 192.168.0.1/24   <---replace XXXX with BBB device name, ex: enxf8dc7a000001 showed up on ifconfig.
+
+for onboard ethernet: setenv ethact eth0
+
+
+
+
+2. Working with NFS server to make a non-local rootfs for target
+
+-using nfs server, you can make the target kernel boot with a rootfs on the host machine:
+
+sudo mkdir ~/nfsroot
+sudo apt-get install nfs-kernel-server
+sudo nano /etc/exports    <--edit file to add nfs root directory: /home/<user>/nfsroot 192.168.0.100(rw,sync,no_subtree_check,no_root_squash) <--- change ip to ip of BBB, or simply do * to make it accessible by any ip if you are doing dynically allocated ip.
+sudo exportfs -a
+sudo systemctl restart nfs-kernel-server
+
+
+-kernel .config file must have the following settings to continue:
+CONFIG_NFS_FS=y (NFS client support)
+CONFIG_ROOT_NFS=y (support for NFS as rootfs)
+CONFIG_IP_PNP=y (configure IP at boot time)
+
+-kernel boot (U-boot) settings: change with setenv and save with saveenv
+root=/dev/nfs    <--change to rootfs over NFS
+ip= XXX.XXX.XXX  <--target ip addr
+nfsroot= YYY.YYY.YYY:/home/usr/rootfs,nfsvers=3,tcp  <--host ip and server details
+
+*************Busybox filesystem generation, skip if using buildroot fs***********
+-use busybox defconfig
+change prefix of compiler and destination of rootfs to nfsroot folder
+sudo make menuconfig # for above changes
+sudo make CC={path to arm-linux-gcc toolchain} 
+sudo make CC=.................................  install
+
+NFS Root Filesystem Structure in addition to Busybox generated files:
+
+    Make sure the root filesystem you’re serving via NFS contains all necessary files and directories:
+        /bin
+        /dev
+        /etc
+        /proc
+        /sys
+    You can create a minimal set of device files using mknod for essential TTYs:
+
+    bash
+
+cd /nfs/rootfs/dev
+sudo mknod tty1 c 4 1
+sudo mknod tty2 c 4 2
+sudo mknod tty3 c 4 3
+sudo mknod tty4 c 4 4
+
+********************Using Buildroot .ext4 filesystem*******************
+
+In the nfsroot folder, cp the rootfs.tar file to it and do: tar -xvf rootfs.tar 
+
+
+
+***************setting permissions, DONT skip*****************************
+sudo chmod -R 755 /nfsrootpath   <--do for nfs folder, tftp folder
+sudo chmod -R 644 /nfsfiles      <--and for nfs/tftp files
+
+
+
+3. Uboot env variables to set
+
+*******************************Commands to run in u-boot command terminal:  *******************************
+setenv bootpart 0:1
+setenv devtype mmc
+setenv bootdir ""
+setenv bootfile zImage
+setenv fdtfile am335x-boneblack.dtb
+setenv bootpartition mmcblk0p2
+setenv console ttyS0,115200n8
+setenv loadaddr 0x82000000
+setenv fdtaddr 0x88000000
+
+setenv ipaddr 192.168.0.150
+setenv devaddr de:ad:be:ef:00:01
+setenv serverip 192.168.0.11
+setenv hostaddr 74:da:38:41:ae:6e
+setenv nfsrootpc ${serverip}:/home/kishore/nfsroot
+
+setenv set_mmc1 'if test ${devtype} = mmc; then setenv bootpartition ${bootpart}; fi'
+setenv set_sd_bootargs 'setenv bootargs console=${console} root=/dev/${bootpartition} rw rootfstype=ext4 rootwait'
+setenv set_sd_loadimage 'load ${devtype} ${bootpart} ${loadaddr} ${bootfile}'
+setenv set_sd_loadfdt 'load ${devtype} ${bootpart} ${fdtaddr} ${fdtfile}'
+setenv uenvcmd_sd 'run set_mmc1; run set_sd_bootargs; run set_sd_loadimage; run set_sd_loadfdt; printenv bootargs; bootz ${loadaddr} - ${fdtaddr}'
+
+setenv set_tftp_nfs_bootargs 'setenv bootargs console=${console} root=/dev/nfs ip=dhcp:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${nfsrootpc},nfsvers=3,tcp rw'
+setenv set_tftp_nfs_loadimage 'tftp ${loadaddr} ${bootfile}'
+setenv set_tftp_nfs_loadfdt 'tftp ${fdtaddr} ${fdtfile}'
+setenv uenvcmd_tftp_nfs 'run set_tftp_nfs_bootargs; run set_tftp_nfs_loadimage; run set_tftp_nfs_loadfdt; printenv bootargs; bootz ${loadaddr} - ${fdtaddr}'
+
+Note: the following was also set:
+usbnet_devaddr=f8:dc:7a:00:00:02
+usbnet_hostaddr=f8:dc:7a:00:00:01
+
+
+
+RUNNING NFS AND TFTP
+********************************************************************************
+
+RUNNING TFTP_NFS BOOT ON HOST
+sudo systemctl start tftpd-hpa
+sudo systemctl restart tftpd-hpa
+sudo systemctl restart nfs-kernel-server
+sudo systemctl status nfs-kernel-server
+--ping server from BBB(ping ${serverip}), should say alive (hostname -I to get host ip)
+
+RUNNING BOOT ON BBB
+run uenvcmd_tftp_nfs
+
+wait long time... login=root, password=set at the buildroot menu
+
+Note: ethernet to router required for nfs
+********************************************
+

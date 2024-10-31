@@ -1,1 +1,46 @@
 Uboot and MLO generation and setup:
+Method 1: U-boot
+
+-set up serial com on ttyUSB0
+
+sudo apt install picocom
+dmesg | grep tty    <--- will find which port the connected device is on, assumed ttyUSB0...
+picocom -b 115200 /dev/ttyUSB0  <--- ctrl-a + ctrl-x to exit
+
+-fetch u-boot code from github
+
+git clone https://gitlab.denx.de/u-boot/u-boot
+cd u-boot
+git checkout v2024.04
+
+
+-altering uboot settings
+
+export CROSS_COMPILE=arm-linux-
+ls configs/ | grep am335   <---[ am335x_evm_defconfig is for beaglebone black board, not am335x_boneblack_vboot_defconfig which is for verified boot ]
+make am335x_evm_defconfig
+make menuconfig   <--- no change necessary
+sudo apt install libssl-dev device-tree-compiler swig \python3-distutils python3-dev python3-setuptools     <--- tools for u-boot compilation for BBboard
+
+
+-build uboot for BBboard
+
+make DEVICE_TREE=am335x-boneblack
+
+
+
+
+Method 2: Buildroot generation of uboot is possible.
+-Enter uboot menu, make uboot-menuconfig, do:
+
+1. Enable: Environment>Environment is in a MMC device, Env is in a Fat Fs
+2. Load value 'mmc' for: Environment>Name of block device for Environment
+3. Load value '1:1' for:      "     >Dev and part for where to store the environment in FAT
+4. Change Environment>mmc device number and mmc partition number to '1'
+
+These changes are to make the uboot store uboot environmental variables in BBB emmc mmcblk1p1
+
+
+
+
+

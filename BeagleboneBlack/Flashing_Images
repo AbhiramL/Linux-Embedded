@@ -6,7 +6,7 @@ preparing micro SD card
 
 dmesg    <--- shows system messages, find sd card (sdb or mmcblk0, assumed sdb)
 lsblk    <--- shows devices, if partition of the sd card is mounted, use sudo umount to unmount
-sudo dd if=/dev/zero of=/dev/sdb bs=1M count=16   <--- wipes sd card
+sudo dd if=/dev/zero of=/dev/sd__ bs=1M count=16   <--- wipes sd card, replace with sdb or sdc
 sudo cfdisk /dev/sdb
 
 -If cfdisk asks you to Select a label type, choose dos. This corresponds to traditional partitions tables that DOS/Windows would understand. gpt partition tables are needed for disks bigger than 2 TB.

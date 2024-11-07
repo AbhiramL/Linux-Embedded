@@ -1,1 +1,20 @@
 Filesystem generation and setup:
+
+Method 1: Using busybox generated fs and partitioned sd card
+-refer to BBB fs instructions
+
+Method 2: Buildroot settings
+
+-do defconfig for pi3, go to menu and filesystem images
+-ext4 root fs, and ext 4 variant
+-exact size:
+-tar the rootfs, compression method gzip
+
+-Filesystem & flash utilities
+-dofstools and e2fsprogs>fsck, resize2fs, e2image
+
+-in Target Packages>System tools:
+-enable util-linux->libblkid, libmount, libuuid, libfdisk
+
+-in Target Packages>Shell & Utilities
+-enable sudo

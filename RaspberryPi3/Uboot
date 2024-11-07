@@ -1,1 +1,13 @@
 Uboot and MLO generation and setup:
+
+Method 1: Build uboot from scratch
+-get BBB uboot doc and read.
+
+Method 2: Buildroot
+
+-after running raspberrypi3_defconfig...
+-go to bootloaders in menuconfig
+-enable uboot
+-binary format : .img
+
+

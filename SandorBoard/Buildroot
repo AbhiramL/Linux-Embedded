@@ -1,0 +1,53 @@
+Setting up a working buildroot image for Sandor board:
+
+IMX6UltraLite Cpu
+1 gb ram
+~256 EMMC space
+
+Defconfigs:
+-Either use:
+    imx6ulevk_defconfig
+    imx6ulpico_defconfig
+
+
+Buildroot-menuconfig:
+Target options:
+-Cortex A7 and ARM arch
+
+Toolchain:
+-musl c library
+-gcc 12.x
+-binutils 2.4
+-5.15 kernel headers
+-c++ support
+
+System Configuration:
+-Inside the "Run a getty after boot"
+    -TTY port is ttymxc0
+    -baudrate of 115200
+
+Target Packages:
+-enabled Libraries>Hardware handling>libserialport
+-enabled Hardware handling>setserial and statserial
+
+-Filesystem Images
+-200M exact size
+-ext4 root filesystem
+-tar the rootfs
+
+
+
+Linux-menuconfig:
+
+General setup:
+-enabled Preemptible kernel
+
+Kernel features:
+-disabled Symmetric Multi-processing    -Imx6ultraLite cpu is a singlecore
+-disabled high memory support
+
+Device Drivers:
+-enable Serial ATA and Parallel ATA drivers, and other drivers as needed
+
+
+

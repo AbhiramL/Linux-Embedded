@@ -1,5 +1,6 @@
 Setting up linux kernel:
 
+Method 1: Getting a kernel from GIT
 
 -Kernel 6.12 has fully preemptable kernel
 
@@ -9,6 +10,8 @@ cd linux
 git checkout v6.12     (as of 10/29/24, v6.12-rc5 is the latest and only version of 6.12)
 
 
--For raspberry pi 3 model b:
+Method 2: Using Buildroot - fetches a custom git kernel for pi3
+
+-using defconfig settings from raspberrypi3_defconfig
 
 

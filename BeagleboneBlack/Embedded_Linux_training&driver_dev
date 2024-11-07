@@ -205,11 +205,6 @@ create permissions for files:
 
 1:
 
-
-export PATH=$PATH:/home/kishore/x-tools/arm-training-linux-musleabihf/bin
-export ARCH=arm
-export CROSS_COMPILE=arm-linux-
-
 for Beaglebone board: can use beaglebone_defconfig
 
 Target:

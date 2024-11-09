@@ -44,6 +44,6 @@ Method 2: Using buildroot generated sdcard.img
 5. boot into sdcard on BBB, sdcard.img should be in the root folder
 6. run command on step 1 but the 'of' target is mmcblk1, skip adding the status flag
 
-
+Note: step 5, if BBB isnt auto booting from sdcard and is booting from emmc or tftp, run the following on uboot enviornment: 'run bootcmd_mmc0' 
 
 

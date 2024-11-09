@@ -7,7 +7,7 @@ preparing micro SD card
 dmesg    <--- shows system messages, find sd card (sdb or mmcblk0, assumed sdb)
 lsblk    <--- shows devices, if partition of the sd card is mounted, use sudo umount to unmount
 sudo dd if=/dev/zero of=/dev/sd__ bs=1M count=16   <--- wipes sd card, replace with sdb or sdc
-sudo cfdisk /dev/sdb
+sudo cfdisk /dev/sd_ (replace with sd card name)
 
 -If cfdisk asks you to Select a label type, choose dos. This corresponds to traditional partitions tables that DOS/Windows would understand. gpt partition tables are needed for disks bigger than 2 TB.
 -In the cfdisk interface, delete existing partitions, then create only one primary partition, starting from the
@@ -19,12 +19,12 @@ Press Write when you are done.
 
 -write FAT32 filesystem on new FAT32 partition
 
-sudo mkfs.vfat -a -F 32 -n boot /dev/sdb1    <--- sdb1 is partition 
+sudo mkfs.vfat -a -F 32 -n boot /dev/sd_1    <--- sdb1/sdc1 is partition 
 
 -mount and copy uboot files
 
 sudo mkdir -p /mnt/sdcard
-sudo mount /dev/sdb1 /mnt/sdcard
+sudo mount /dev/sd_1 /mnt/sdcard  (replace sd_ with sdb or sdc)
 cd ~/u-boot/
 sudo cp MLO u-boot.img /mnt/sdcard
 sudo umount /mnt/sdcard

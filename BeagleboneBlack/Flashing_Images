@@ -6,8 +6,9 @@ preparing micro SD card
 
 dmesg    <--- shows system messages, find sd card (sdb or mmcblk0, assumed sdb)
 lsblk    <--- shows devices, if partition of the sd card is mounted, use sudo umount to unmount
+
 sudo dd if=/dev/zero of=/dev/sd_ bs=1M count=16   <--- wipes sd card, replace sd_ with sdc or sdb
-sudo cfdisk /dev/sd_
+sudo cfdisk /dev/sd_ (replace with sd card name)
 
 -If cfdisk asks you to Select a label type, choose dos. This corresponds to traditional partitions tables that DOS/Windows would understand. gpt partition tables are needed for disks bigger than 2 TB.
 -In the cfdisk interface, delete existing partitions, then create only one primary partition, starting from the
@@ -19,12 +20,12 @@ Press Write when you are done.
 
 -write FAT32 filesystem on new FAT32 partition
 
-sudo mkfs.vfat -a -F 32 -n boot /dev/sdb1    <--- sdb1 is partition 
+sudo mkfs.vfat -a -F 32 -n boot /dev/sd_1    <--- sdb1/sdc1 is partition 
 
 -mount and copy uboot files
 
 sudo mkdir -p /mnt/sdcard
-sudo mount /dev/sdb1 /mnt/sdcard
+sudo mount /dev/sd_1 /mnt/sdcard  (replace sd_ with sdb or sdc)
 cd ~/u-boot/
 sudo cp MLO u-boot.img /mnt/sdcard
 sudo umount /mnt/sdcard
@@ -54,6 +55,3 @@ saveenv
 10. reset board and boot into the kernel.
 
 If the variables are not saving, it is because the uboot enviornment is not configured to save into a Fat files system or it is configured to save onto mmc 0 or the sdcard. Do the changes at the bottom of the uboot file on the github.
-
-
-

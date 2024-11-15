@@ -6,7 +6,8 @@ preparing micro SD card
 
 dmesg    <--- shows system messages, find sd card (sdb or mmcblk0, assumed sdb)
 lsblk    <--- shows devices, if partition of the sd card is mounted, use sudo umount to unmount
-sudo dd if=/dev/zero of=/dev/sd__ bs=1M count=16   <--- wipes sd card, replace with sdb or sdc
+
+sudo dd if=/dev/zero of=/dev/sd_ bs=1M count=16   <--- wipes sd card, replace sd_ with sdc or sdb
 sudo cfdisk /dev/sd_ (replace with sd card name)
 
 -If cfdisk asks you to Select a label type, choose dos. This corresponds to traditional partitions tables that DOS/Windows would understand. gpt partition tables are needed for disks bigger than 2 TB.
@@ -38,12 +39,19 @@ sudo umount /mnt/sdcard
 Method 2: Using buildroot generated sdcard.img
 
 1. do: sudo dd if=buildroot/output/images/sdcard.img of=/dev/[name of sdcard device, ex. sdc] bs=4M status=progress    
-2. boot into sdcard on BBB
-3. using cfdisk resize the 2nd partition by adding ~600mb-1Gb, write changes to disk
-4. save sdcard.img on the 2nd partition (mount partition and cp file to there)
-5. boot into sdcard on BBB, sdcard.img should be in the root folder
-6. run command on step 1 but the 'of' target is mmcblk1, skip adding the status flag
+2. make sure sdcard isnt mounted on host
+3. using 'cfdisk /dev/sd_' delete the 2nd partition, create a new linux partition(about 2gb), write changes to disk
+    -make sure to do 'mkfs.ext4 /dev/sd_2' for the 2nd partition
+4. copy rootfs.tar to the 2nd sdcard partition after mounting it, then run 'tar -xvf rootfs.tar'
+    -it is safe to remove the rootfs.tar file from the partition now
+5. copy sdcard.img to the 2nd partition (mount partition and cp file to there), then dismount the sdcard
+6. boot into sdcard on BBB, sdcard.img should be in the root folder
+7. run command on step 1 but the 'of' target is mmcblk1, skip adding the status flag
+8. remove sdcard from BBB, reset board, stop uboot at the enviornment
+9. do:
+setenv bootcmd 'mmc dev 1; load mmc 1:1 ${loadaddr} zImage; load mmc 1:1 ${fdtaddr} am335x-boneblack.dtb; bootz ${loadaddr} - ${fdtaddr}'
+setenv bootargs 'console=ttyO0,115200n8 root=/dev/mmcblk1p2 rw rootfstype=ext4 rootwait'
+saveenv
+10. reset board and boot into the kernel.
 
-Note: step 5, if BBB isnt auto booting from sdcard and is booting from emmc or tftp, run the following on uboot enviornment: 'run bootcmd_mmc0' 
-
-
+If the variables are not saving, it is because the uboot enviornment is not configured to save into a Fat files system or it is configured to save onto mmc 0 or the sdcard. Do the changes at the bottom of the uboot file on the github.

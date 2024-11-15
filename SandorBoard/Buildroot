@@ -6,7 +6,7 @@ IMX6UltraLite Cpu
 
 Defconfigs:
 -Either use:
-    imx6ulevk_defconfig
+    imx6ulevk_defconfig    -best fit defconfig
     imx6ulpico_defconfig
 
 
@@ -27,14 +27,19 @@ System Configuration:
     -baudrate of 115200
 
 Target Packages:
--enabled Libraries>Hardware handling>libserialport
+-enabled Libraries>Hardware handling>libserialport    -if you want to program serial driver in c
 -enabled Hardware handling>setserial and statserial
 
 -Filesystem Images
--200M exact size
--ext4 root filesystem
--tar the rootfs
-
+-ubi root filesystem
+[*] ubi image containing an ubifs root filesystem                 
+    (0x20000) physical eraseblock size (NEW)                          
+    (512) sub-page size (NEW)                
+    -*- ubifs root filesystem                  
+    (0x1f800) logical eraseblock size (NEW)  
+    (0x800) minimum I/O unit size (NEW)      
+    (1800) maximum logical eraseblock count  
+    ubifs runtime compression (lzo)      
 
 
 Linux-menuconfig:
@@ -48,6 +53,10 @@ Kernel features:
 
 Device Drivers:
 -enable Serial ATA and Parallel ATA drivers, and other drivers as needed
+
+File Systems:
+-enable ubi fs in Misc. Filesystems
+-change the size of ext4 fs to 200M from 60
 
 
 

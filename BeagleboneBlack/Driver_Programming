@@ -1,0 +1,28 @@
+Device Driver Programming: UART device
+
+Follow the following instruction with after running defconfig
+Enable the following:
+
+Buildroot: make menuconfig
+Toolchain:
+-c++ support
+
+System Configuration:
+-Enable /dev management: Dyanamic using detmpfs + mdev
+-Enable remount root filesystem read-write during boot
+
+Target Packages:
+-System Tools: enable kmod and kmod util
+- "      "   : enable util-linux>mount/umount
+
+File system:
+-enable tar rootfs 
+
+
+Busybox: make busybox-menuconfig
+Linux Module Utilities:
+-insmod, rmmod, lsmod, modinfo, modprobe must be enabled
+
+Linux: make linux-menuconfig
+-enable loadable module support
+

@@ -31,8 +31,12 @@ make DEVICE_TREE=am335x-boneblack
 
 
 Method 2: Buildroot generation of uboot is possible.
--Enter uboot menu, make uboot-menuconfig, do:
+-Enter uboot menu, make uboot-menuconfig
 
+********************************************************
+The following is needed:
+
+In uboot-menuconfig
 1. Enable: Environment>Environment is in a MMC device, Env is in a Fat Fs
 2. Load value 'mmc' for: Environment>Name of block device for Environment
 3. Load value '1:1' for:      "     >Dev and part for where to store the environment in FAT

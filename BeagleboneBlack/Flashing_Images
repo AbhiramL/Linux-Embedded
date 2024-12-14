@@ -41,7 +41,7 @@ Method 2: Using buildroot generated sdcard.img
 1. do: sudo dd if=buildroot/output/images/sdcard.img of=/dev/[name of sdcard device, ex. sdc] bs=4M status=progress    
 2. make sure sdcard isnt mounted on host
 3. using 'cfdisk /dev/sd_' delete the 2nd partition, create a new linux partition(about 2gb), write changes to disk
-    -make sure to do 'mkfs.ext4 /dev/sd_2' for the 2nd partition
+    -make sure to do 'mkfs.ext4 /dev/[name of device ex. sdc]2' for the 2nd partition
 4. copy rootfs.tar to the 2nd sdcard partition after mounting it, then run 'tar -xvf rootfs.tar'
     -it is safe to remove the rootfs.tar file from the partition now
 5. copy sdcard.img to the 2nd partition (mount partition and cp file to there), then dismount the sdcard

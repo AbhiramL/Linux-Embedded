@@ -26,3 +26,138 @@ Linux Module Utilities:
 Linux: make linux-menuconfig
 -enable loadable module support
 
+
+
+-Get cross compilation toolchain:
+
+sudo apt update
+sudo apt install gcc-arm-linux-gnueabihf
+
+-or-
+
+if using buildroot generated image: 
+
+export PATH=$PATH:/home/abhiram/x-tools/arm-training-linux-musleabihf/bin
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-
+
+
+TO DO:
+
+1. Possible rebuild of driverdev buildroot image needed: 
+    enable serial port related settings
+    nano enabled
+2. How to make device driver?
+3. Make host module and target module for serial communication
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-Example modules:
+
+*********Makefile:
+
+
+*********Hello.c:
+
+#include <linux/module.h>
+#include <linux/kernel.h>
+
+int init_module(void)
+{
+    printk(KERN_INFO "Hello, BeagleBone Black!\n");
+    return 0;
+}
+
+void cleanup_module(void)
+{
+    printk(KERN_INFO "Goodbye, BeagleBone Black!\n");
+}
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("Your Name");
+MODULE_DESCRIPTION("Simple kernel module for BBB.");
+
+
+ 
+
+Creating a USB device driver to simulate a serial port involves using a USB-to-Serial converter chip, such as the **FTDI** or **Silicon Labs CP210x**. These chips can emulate a COM port over USB, making it appear as a traditional serial port to the host system.
+
+Here's a high-level overview of the steps involved:
+
+1. **Choose a USB-to-Serial Converter Chip**: Select a chip like FTDI or Silicon Labs CP210x.
+2. **Design the Hardware**: Connect the USB-to-Serial converter chip to your device.
+3. **Write the Driver**: Develop a kernel module that interfaces with the USB-to-Serial converter chip.
+4. **Implement Serial Port Functions**: Implement functions like `open`, `read`, `write`, and `ioctl` to handle serial port operations.
+5. **Register the Driver**: Register the device driver with the kernel using functions like `register_chrdev`.
+6. **Load the Module**: Load the module into the kernel using the `insmod` command.
+7. **Create Device Nodes**: Create device nodes in `/dev` so that applications can interact with the simulated serial port.
+
+Here's a simple example of a USB device driver using the FTDI chip:
+
+```c
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/usb.h>
+
+#define DEVICE_NAME "my_device"
+
+static int my_open(struct inode *inode, struct file *file) {
+    printk(KERN_INFO "my_device: opened\n");
+    return 0;
+}
+
+static int my_close(struct inode *inode, struct file *file) {
+    printk(KERN_INFO "my_device: closed\n");
+    return 0;
+}
+
+static struct file_operations fops = {
+    .open = my_open,
+    .release = my_close,
+};
+
+static int __init my_module_init(void) {
+    int ret = register_chrdev(0, DEVICE_NAME, &fops);
+    if (ret < 0) {
+        printk(KERN_ALERT "my_device: failed to register\n");
+        return ret;
+    }
+    printk(KERN_INFO "my_device: registered with major number %d\n", ret);
+    return 0;
+}
+
+static void __exit my_module_exit(void) {
+    unregister_chrdev(0, DEVICE_NAME);
+    printk(KERN_INFO "my_device: unregistered\n");
+}
+
+module_init(my_module_init);
+module_exit(my_module_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("My USB-to-Serial Device Driver");
+MODULE_AUTHOR("Your Name");
+```
+
+This example demonstrates the basic structure of a USB device driver that simulates a serial port. You'll need to adapt it to your specific hardware and requirements.
+
+Would you like more detailed guidance on any specific step?
+
+
+

@@ -46,7 +46,7 @@ export CROSS_COMPILE=arm-linux-
 Developing a USB serial module on BBB using the USB-A port:
 
 1. Edit .dts file located at buildroot/output/build/linux-custom/arch/arm/boot/dts/am335x-boneblack.dts
-    - linux-custom is the folder for the buildroot linux version since it created a custom tarball in menuconfig
+    - linux-custom is the folder for the buildroot linux version since I enabled custom tarball in menuconfig
 2. 
 
 

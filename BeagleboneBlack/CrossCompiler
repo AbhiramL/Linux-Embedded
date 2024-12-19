@@ -63,9 +63,9 @@ cd crosstool-ng/
 
 
 Method 2: Buildroot : git clone https://gitlab.com/buildroot.org/buildroot.git
-
--using beaglebone_defconfig will set up default cross compiler toolchain
--toolchain to use glibc, gcc 13.x, binutils 2.40
+-checkout a version close to 2024.02, as this is a stable release
+-using 'make beaglebone_defconfig' will set up default cross compiler toolchain
+-toolchain to use glibc, gcc 13.x, binutils 2.40 or higher
 
 
 

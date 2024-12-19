@@ -42,14 +42,12 @@ export ARCH=arm
 export CROSS_COMPILE=arm-linux-
 
 
-TO DO:
 
-1. Possible rebuild of driverdev buildroot image needed: 
-    enable serial port related settings
-    nano enabled
-2. How to make device driver?
-3. Make host module and target module for serial communication
+Developing a USB serial module on BBB using the USB-A port:
 
+1. Edit .dts file located at buildroot/output/build/linux-custom/arch/arm/boot/dts/am335x-boneblack.dts
+    - linux-custom is the folder for the buildroot linux version since it created a custom tarball in menuconfig
+2. 
 
 
 

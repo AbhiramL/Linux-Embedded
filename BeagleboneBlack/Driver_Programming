@@ -35,7 +35,7 @@ sudo apt install gcc-arm-linux-gnueabihf
 
 -or-
 
-if using buildroot generated image: 
+if using cross-tool generated toolchain: 
 
 export PATH=$PATH:/home/abhiram/x-tools/arm-training-linux-musleabihf/bin
 export ARCH=arm

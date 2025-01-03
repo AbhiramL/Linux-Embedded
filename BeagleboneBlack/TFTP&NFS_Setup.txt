@@ -58,12 +58,22 @@ hostname -I   - list host's ip addr, use if you are connecting BBB to router via
 	-sudo exportfs -a
 	-sudo systemctl restart nfs-kernel-server
 
-2. The following changes must be reflected in the buildroot .config file, 
+2. The following changes must be reflected in the buildroot kernel .config file, 
 	make this change by using 'nano .config' in the buildroot/output/build/linux-[version] directory:
 
 	CONFIG_NFS_FS=y (NFS client support)
 	CONFIG_ROOT_NFS=y (support for NFS as rootfs)
 	CONFIG_IP_PNP=y (configure IP at boot time)    //optional, only if you want this
+	
+	Add options to support USB host and networking over USB device:
+	–CONFIG_USB=y
+	–CONFIG_USB_GADGET=y
+	–CONFIG_USB_MUSB_HDRC=y Driver for the USB OTG controller
+	–CONFIG_USB_MUSB_DSPS=y
+	–CONFIG_USB_MUSB_DUAL_ROLE=y 
+	-Check the dependencies of CONFIG_AM335X_PHY_USB and find the way to set 
+		CONFIG_AM335X_PHY_USB=y
+	–CONFIG_USB_ETH=y
 
 3. Run:
 	-sudo chmod -R 755 nfs_folder
@@ -74,14 +84,15 @@ hostname -I   - list host's ip addr, use if you are connecting BBB to router via
 
 ---Setup the uboot environment for booting tftp/nfs---
 
-1. The following are uboot commands to setup the environment on BBB for booting:
+1. The following are uboot commands to setup the environment on BBB for booting: replace user with username
 
 setenv bootfile zImage
 setenv fdtfile am335x-boneblack.dtb
 setenv loadaddr 0x82000000
 setenv fdtaddr 0x88000000
+setenv bootargs console=ttyS0,115200n8
 setenv nfsrootpc ${serverip}:/home/user/nfsroot
-setenv set_tftp_nfs_bootargs 'setenv bootargs console=${console} root=/dev/nfs ip=${ipaddr}:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${nfsrootpc},nfsvers=3,tcp rw'
+setenv set_tftp_nfs_bootargs 'setenv bootargs ${bootargs} root=/dev/nfs ip=${ipaddr}:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${nfsrootpc},nfsvers=3,tcp rw'
 setenv set_tftp_nfs_loadimage 'tftp ${loadaddr} ${bootfile}'
 setenv set_tftp_nfs_loadfdt 'tftp ${fdtaddr} ${fdtfile}'
 setenv uenvcmd_tftp_nfs 'run set_tftp_nfs_bootargs; run set_tftp_nfs_loadimage; run set_tftp_nfs_loadfdt; printenv bootargs; bootz ${loadaddr} - ${fdtaddr}'

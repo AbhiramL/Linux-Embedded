@@ -81,7 +81,7 @@ setenv fdtfile am335x-boneblack.dtb
 setenv loadaddr 0x82000000
 setenv fdtaddr 0x88000000
 setenv nfsrootpc ${serverip}:/home/user/nfsroot
-setenv set_tftp_nfs_bootargs 'setenv bootargs console=${console} root=/dev/nfs ip=dhcp:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${nfsrootpc},nfsvers=3,tcp rw'
+setenv set_tftp_nfs_bootargs 'setenv bootargs console=${console} root=/dev/nfs ip=${ipaddr}:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${nfsrootpc},nfsvers=3,tcp rw'
 setenv set_tftp_nfs_loadimage 'tftp ${loadaddr} ${bootfile}'
 setenv set_tftp_nfs_loadfdt 'tftp ${fdtaddr} ${fdtfile}'
 setenv uenvcmd_tftp_nfs 'run set_tftp_nfs_bootargs; run set_tftp_nfs_loadimage; run set_tftp_nfs_loadfdt; printenv bootargs; bootz ${loadaddr} - ${fdtaddr}'

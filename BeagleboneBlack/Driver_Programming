@@ -7,6 +7,9 @@ Buildroot: make menuconfig
 Toolchain:
 -c++ support
 
+Kernel
+-Linux kernel tools: enable gpio tools
+
 System Configuration:
 -Enable /dev management: Dyanamic using detmpfs + mdev
 -Enable remount root filesystem read-write during boot

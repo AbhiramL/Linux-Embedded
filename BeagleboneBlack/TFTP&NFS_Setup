@@ -92,10 +92,21 @@ setenv loadaddr 0x82000000
 setenv fdtaddr 0x88000000
 setenv bootargs console=ttyS0,115200n8
 setenv nfsrootpc ${serverip}:/home/user/nfsroot
-setenv set_tftp_nfs_bootargs 'setenv bootargs ${bootargs} root=/dev/nfs ip=${ipaddr}:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${nfsrootpc},nfsvers=3,tcp rw'
+setenv set_tftp_nfs_bootargs 'setenv bootargs ${bootargs} root=/dev/nfs ip=${ipaddr}:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${nfsrootpc},nfsvers=3,tcp rw rootfstype=ext4 rootwait'
 setenv set_tftp_nfs_loadimage 'tftp ${loadaddr} ${bootfile}'
 setenv set_tftp_nfs_loadfdt 'tftp ${fdtaddr} ${fdtfile}'
-setenv uenvcmd_tftp_nfs 'run set_tftp_nfs_bootargs; run set_tftp_nfs_loadimage; run set_tftp_nfs_loadfdt; printenv bootargs; bootz ${loadaddr} - ${fdtaddr}'
+setenv uenvcmd_tftp_nfs 'ping ${serverip}; run set_tftp_nfs_bootargs; run set_tftp_nfs_loadimage; run set_tftp_nfs_loadfdt; printenv bootargs; bootz ${loadaddr} - ${fdtaddr}'
+
+
+problems:
+1. is outdated uboot causing nfs mounting failure
+2. is direct ethernet from BBB to dhcp router required
+3. is there a problem with the usb_ether, why is it not showing up on ip link on host
+4. is there a problem with the nmcli command on host
+5. is there a different way to do nfs server
+6. why is the tftp working but not the nfs server
+
+
 
 2. Running TFTP - NFS booted BBB
 

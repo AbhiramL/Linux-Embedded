@@ -35,8 +35,8 @@ hostname -I   - list host's ip addr, use if you are connecting BBB to router via
 	-run exportfs -a to save tftp setting changes
 
 5. Run:
-	-sudo systemctl restart
-	-sudo systemctl status 
+	-sudo systemctl restart tftpd-hpa
+	-sudo systemctl status tftpd-hpa
 	-sudo chmod -R 755 tftp_folder
 	-sudo chmod -R 644 tftp_folder/files_in_this_folder
 		-add zimage and .dtb files here and do chmod on those files
@@ -86,3 +86,17 @@ setenv set_tftp_nfs_loadimage 'tftp ${loadaddr} ${bootfile}'
 setenv set_tftp_nfs_loadfdt 'tftp ${fdtaddr} ${fdtfile}'
 setenv uenvcmd_tftp_nfs 'run set_tftp_nfs_bootargs; run set_tftp_nfs_loadimage; run set_tftp_nfs_loadfdt; printenv bootargs; bootz ${loadaddr} - ${fdtaddr}'
 
+2. Running TFTP - NFS booted BBB
+
+::::::RUNNING TFTP_NFS BOOT:::::::
+HOST:
+sudo systemctl start tftpd-hpa
+sudo systemctl restart tftpd-hpa
+sudo systemctl restart nfs-kernel-server
+sudo systemctl status nfs-kernel-server
+
+BBB:
+--ping server from BBB(ping ${serverip}), should say alive (hostname -I to get host ip)
+run uenvcmd_tftp_nfs
+
+wait long time... login=root, password=set at the buildroot menu

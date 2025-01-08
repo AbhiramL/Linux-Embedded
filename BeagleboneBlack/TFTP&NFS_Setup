@@ -9,12 +9,11 @@ hostname -I   - list host's ip addr, use if you are connecting BBB to router via
 ------TFTP SETUP------
 
 1. Use setenv command on BBB uboot interface to set the following:
-	-ipaddr     to 192.168.0.2
-	-serverip   to 192.168.0.1
-	-ethprime   to usb_ether if using usb to power BBB, 
-		    or eth0 for ethernet connection to router is given
-	-usbnet_devaddr  to f8:dc:7a:00:00:02  (MAC addr on BBB side)
-	-usbnet_hostaddr  to f8:dc:7a:00:00:01  (MAC addr on HOST side)
+setenv ipaddr 192.168.0.100
+setenv serverip 192.168.0.1
+setenv ethprime usb_ether      		 if using usb to power BBB, or eth0 for ethernet connection to router is given
+setenv usbnet_devaddr f8:dc:7a:00:00:02  (MAC addr on BBB side)
+setenv usbnet_hostaddr f8:dc:7a:00:00:01  (MAC addr on HOST side) //experimenting with setting to actual host mac addr
 	
 2. Saveenv on Uboot, running ping serverip on Uboot while running ifconfig on host side
 	will show a new interface has been connected to the host.

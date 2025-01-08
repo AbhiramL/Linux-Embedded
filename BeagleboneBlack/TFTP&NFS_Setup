@@ -38,7 +38,7 @@ setenv usbnet_hostaddr f8:dc:7a:00:00:01  (MAC addr on HOST side) //experimentin
 5. Run:
 	-sudo systemctl restart tftpd-hpa
 	-sudo systemctl status tftpd-hpa
-	-sudo chmod -R 755 tftp_folder
+	-sudo chmod 755 tftp_folder
 	-sudo chmod -R 644 tftp_folder/files_in_this_folder
 		-add zimage and .dtb files here and do chmod on those files
 	-After running chmod permission changes, you can test the changes by:
@@ -92,6 +92,7 @@ setenv bootfile zImage
 setenv fdtfile am335x-boneblack.dtb
 setenv loadaddr 0x82000000
 setenv fdtaddr 0x88000000
+
 
 setenv nfsrootpc ${serverip}:/home/user/nfsroot
 setenv set_tftp_nfs_bootargs 'setenv bootargs ${bootargs} console=ttyS0,115200n8 root=/dev/nfs ip=${ipaddr}:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${nfsrootpc},nfsvers=3,tcp rw rootfstype=ext4 rootwait'

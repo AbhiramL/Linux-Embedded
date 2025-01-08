@@ -42,21 +42,22 @@ sudo apt install gcc-arm-linux-gnueabihf
 
 -or-
 
-if using buildroot generated image: 
+if using cross-tool generated toolchain: 
 
 export PATH=$PATH:/home/abhiram/x-tools/arm-training-linux-musleabihf/bin
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-
 
 
-TO DO:
 
-1. Possible rebuild of driverdev buildroot image needed: 
-    enable serial port related settings
-    nano enabled
-2. How to make device driver?
-3. Make host module and target module for serial communication
+Developing a module on BBB:
 
+1. Edit .dts file located at buildroot/output/build/linux-custom/arch/arm/boot/dts/am335x-boneblack.dts
+    - linux-custom is the folder for the buildroot linux version since I enabled custom tarball in menuconfig. If 
+    you make buildroot to make the 6.6 kernel in the image for example, find the linux-6.6 folder.
+
+2. Navigate to the /buildroot/output/build/linux-custom folder where the kernel source files are. 
+    - Run 'make dtbs' to make the linux kernel compile the dts files into dtb files.
 
 
 

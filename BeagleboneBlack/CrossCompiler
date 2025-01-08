@@ -62,6 +62,7 @@ cd crosstool-ng/
 
 
 
+
 Method 2: Buildroot : 
 
 -go to buildroot.org, downloads, latest stable release .tar.xz, use 'tar -xavf' to unzip

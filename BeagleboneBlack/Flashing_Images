@@ -45,7 +45,7 @@ Method 2: Using buildroot generated sdcard.img
 4. copy rootfs.tar to the 2nd sdcard partition after mounting it, then run 'tar -xvf rootfs.tar'
     -it is safe to remove the rootfs.tar file from the partition now
 5. copy sdcard.img to the 2nd partition (mount partition and cp file to there), then dismount the sdcard
-6. boot into sdcard on BBB, sdcard.img should be in the root folder
+6. boot into sdcard on BBB, sdcard.img should be in the root folder. Use s2 button on board: hold down button, then plug in the board.
 7. run command on step 1 but the 'of' target is mmcblk1, skip adding the status flag
 8. remove sdcard from BBB, reset board, stop uboot at the enviornment
 9. do:

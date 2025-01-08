@@ -29,7 +29,11 @@ Linux Module Utilities:
 Linux: make linux-menuconfig
 -enable loadable module support
 
-
+Uboot: make uboot-menuconfig
+-Enable: Environment>Environment is in a MMC device, Env is in a Fat Fs
+-Load value 'mmc' for: Environment>Name of block device for Environment
+-Load value '1:1' for:      "     >Dev and part for where to store the environment in FAT
+-Change Environment>mmc device number and mmc partition number to '1'
 
 -Get cross compilation toolchain:
 

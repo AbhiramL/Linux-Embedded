@@ -10,7 +10,7 @@ The config files must be either
 
 OR
 
-2. loaded using gui by calling make menuconfig(ex. make uboot-menuconfig, make busybox-menuconfig, make linux-menuconfig)
+2. loaded using gui by calling 'make menuconfig' in the buildroot parent directory(ex. make uboot-menuconfig, make busybox-menuconfig, make linux-menuconfig)
 	-to accomplish this do:
 		-copy the files to the respective folders highlighted at 1.
 		-from ~/buildroot/ folder, call the make menuconfig command

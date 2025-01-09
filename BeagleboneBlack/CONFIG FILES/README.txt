@@ -2,7 +2,7 @@ TO USE CONFIG FILES:
 
 The config files must be either 
 
-1. renamed to '.config' in their respective folders:
+1. renamed to '.config' in their respective folders after deleting the existing .config file in those folders:
 	buildroot.config : ~/buildroot/
 	uboot.config     : ~/buildroot/output/build/uboot-version/
 	busybox.config   : ~/buildroot/output/build/busybox-version/

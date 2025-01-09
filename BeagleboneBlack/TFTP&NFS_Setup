@@ -87,21 +87,28 @@ setenv usbnet_hostaddr f8:dc:7a:00:00:01  (MAC addr on HOST side) //experimentin
 ---Setup the uboot environment for booting tftp/nfs---
 
 1. The following are uboot commands to setup the environment on BBB for booting: replace user with username
+-take care when copy pasting, characters have a chance of randomly disappearing, so copy at most 4 lines at a time
+
+setenv bootcmd 'run uenvcmd_tftp_nfs'
 
 setenv bootfile zImage
 setenv fdtfile am335x-boneblack.dtb
 setenv loadaddr 0x82000000
 setenv fdtaddr 0x88000000
 
+setenv ipaddr 192.168.0.100
+setenv serverip 192.168.0.1
+setenv ethprime usb_ether      		 
+setenv usbnet_devaddr f8:dc:7a:00:00:02 
+setenv usbnet_hostaddr f8:dc:7a:00:00:01
 
 setenv nfsrootpc ${serverip}:/home/user/nfsroot
-setenv set_tftp_nfs_bootargs 'setenv bootargs ${bootargs} console=ttyS0,115200n8 root=/dev/nfs ip=${ipaddr}:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${nfsrootpc},nfsvers=3,tcp rw rootfstype=ext4 rootwait'
-setenv set_tftp_nfs_bootargs 'setenv bootargs ${bootargs} root=/dev/nfs ip=${ipaddr}:::::usb0 g_ether.dev_addr=${usbnet_devaddr} g_ether.host_addr=${usbnet_hostaddr} nfsroot=${nfsrootpc},nfsvers=3,tcp rw'
 setenv set_tftp_nfs_loadimage 'tftp ${loadaddr} ${bootfile}'
 setenv set_tftp_nfs_loadfdt 'tftp ${fdtaddr} ${fdtfile}'
-setenv uenvcmd_tftp_nfs 'ping ${serverip}; run set_tftp_nfs_bootargs; run set_tftp_nfs_loadimage; run set_tftp_nfs_loadfdt; printenv bootargs; bootz ${loadaddr} - ${fdtaddr}'
+setenv uenvcmd_tftp_nfs 'ping ${serverip}; run set_tftp_nfs_loadimage; run set_tftp_nfs_loadfdt; printenv bootargs; bootz ${loadaddr} - ${fdtaddr}'
 
-
+setenv bootargs 'console=ttyS0,115200n8'
+setenv bootargs ${bootargs} root=/dev/nfs ip=192.168.0.100:::::usb0 g_ether.dev_addr=f8:dc:7a:00:00:02 g_ether.host_addr=f8:dc:7a:00:00:01 nfsroot=192.168.0.1:/home/kishore/nfsroot,nfsvers=3,tcp rw
 
 2. Running TFTP - NFS booted BBB
 

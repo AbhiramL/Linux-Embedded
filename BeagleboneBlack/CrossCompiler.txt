@@ -69,6 +69,7 @@ Method 2: Buildroot :
 -make sure to: sudo apt install build-essential git autoconf bison flex texinfo help2man gawk libtool-bin \libncurses5-dev unzip
 -using 'make beaglebone_defconfig' will set up default cross compiler toolchain
 -toolchain to use glibc, gcc 13.x, binutils 2.40 or higher
+-enable c++ support
 
 
 

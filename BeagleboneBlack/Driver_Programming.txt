@@ -119,6 +119,11 @@ TLDR. 540 is the pin number used in this gpio bank and not 60 as I calculated ea
 -on the breadboard, connect the ground of the BBB to the gnd of the breadboard
 -connect the pin you allocated to toggling to the available rows A-J on the breadboard and, in series, connect an LED to it and the ground of the breadboard.
 
+Remember to do the following when running make to compile the led_blink.c:
+export PATH=$HOME/buildroot-2024.11.1/output/host/bin:$PATH     <--change buildroot version if needed
+export ARCH=arm
+export CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
+
 
 --UART Module--
 

@@ -109,7 +109,7 @@ insmod: ERROR: could not insert module led_blink.ko: Unknown error 517
 
 -By running the command 'cat /sys/kernel/debug/gpio' in the BBB terminal after the kernel has booted, 
 you will see the state of all gpio pins on the system.
--if the gpio pin number you see didnt show up here, it means it is likely in use and cannot be used.
+-if the gpio pin number you set didnt show up here, it means it is likely in use and cannot be used.
 -Run the cat command above, find the pin you want to use to drive a LED
 available ones will look like : gpio-540 (P9_12               |sysfs               ) in  hi 
 

@@ -8,9 +8,12 @@ Enable the following:
 Buildroot: make menuconfig
 Toolchain:
 -c++ support
+-toolchain to use glibc, gcc 13.x, binutils 2.40 or higher
+-enable c++ support
 
 Kernel
 -Linux kernel tools: enable gpio tools
+-target packages>filesystem and flash utilities>e2fsprogs & enable dofstools (all options) dofstools needs glibc toolchain not musl
 
 System Configuration:
 -Enable /dev management: Dyanamic using detmpfs + mdev
@@ -22,7 +25,8 @@ Target Packages:
 
 File system:
 -enable tar rootfs 
-
+-enable ext4 filesystem
+-512M exact size
 
 Busybox: make busybox-menuconfig
 Linux Module Utilities:
@@ -55,20 +59,23 @@ end.
 
 1. Follow structure of helloMod.c in modules folder on Github
 
-2. Make a Makefile to use buildroot's generated cross compiler toolchain by specifying CROSS_COMPILE in the terminal environment and link the buildroot generated linux image's kernel headers by specifying KERNEL_DIR and updating the PATH variable.
+2. Make a Makefile to use buildroot's generated cross compiler toolchain by specifying CROSS_COMPILE in the terminal environment and link the buildroot generated linux 
+image's kernel headers by specifying KERNEL_DIR and updating the PATH variable.
 
 export PATH=$HOME/buildroot-2024.11.1/output/host/bin:$PATH     <--change buildroot version if needed
 export ARCH=arm
 export CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
 
-Note: if changes are made to buildroot's toolchain or kernel version settings, these values will change. linux-custom in the Makefile refers to the custom tarball of the linux kernel buildroot will build.
+Note: if changes are made to buildroot's toolchain or kernel version settings, these values will change. linux-custom in the Makefile refers to the custom tarball 
+of the linux kernel buildroot will build.
 
 3. Boot into linux image on BBB, use 'insmod mod.ko' to load the module and 'rmmod mod' to unload the mod. Use lsmod to check loaded modules.
 
 
 --Developing Led_blink mod--
 
-1. The first thing to do is to enable a legacy interface for busybox by enabling CONFIG_GPIO_SYSFS in the kernel configuration .config file. Also make sure Debugfs is enabled (CONFIG_DEBUG_FS and CONFIG_DEBUG_FS_ALLOW_ALL).
+1. The first thing to do is to enable a legacy interface for busybox by enabling CONFIG_GPIO_SYSFS in the kernel configuration .config file. Also make sure 
+Debugfs is enabled (CONFIG_DEBUG_FS and CONFIG_DEBUG_FS_ALLOW_ALL).
 
 Note: 
 You can modify onboard LED to test the legacy interface:
@@ -96,7 +103,8 @@ echo timer > trigger
 echo 10 > delay_on
 echo 200 > delay_off
 
-2. The pinout for the Beaglebone black has expansion headers P8 and P9, we will access P9_12 or GPIO1_28 as stated in the BBB system reference manual. Use the following equation to get the Linux GPIO number:
+2. The pinout for the Beaglebone black has expansion headers P8 and P9, we will access P9_12 or GPIO1_28 as stated in the BBB system reference manual. 
+Use the following equation to get the Linux GPIO number:
 
     Linux GPIO Number = (GPIO bank number * 32) + pin number in the bank
 
@@ -126,6 +134,25 @@ export CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
 
 
 --UART Module--
+
+Before starting to program the module, keep in mind a userspace program will drive the driver/kernel module:
+
+Developing a Kernel module for operation of the UART port:
+
+-Develop a simple kernel module with functions that can be mapped to libc system calls:
+Open - which can be mapped to initialization of the UART port
+Read - which can be mapped to reading characters on serial line into a buffer
+Write - which can be mapped to writing characters to the serial line from a buffer
+Ioctl - which can be mapped to setting baud rate and parity etc.
+
+-Register the character device so a new device will appear under /dev/ in the linux directory by simply creating a character device within the kernel module 
+via register_chrdev. Unregister the device at the end of the module(when it is to be unloaded/removed using rmmod) with unregister_chrdev.
+
+-Create a file operations struct that the linux kernel can use to map system calls with module functions that you define. At least the 4 above system calls 
+should be mapped to kernel module functions. 
+
+-The userspace program will call open, read, write, ioctl, which will invoke the kernel to do sys_open, sys_read, sys_write, and sys_ioctl. When these sys 
+calls are executed by the kernel, the file operations struct within the kernel module will direct the kernel to execute the associated function then return.
 
 
 

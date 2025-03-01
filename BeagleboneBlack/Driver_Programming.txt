@@ -161,7 +161,85 @@ should be mapped to kernel module functions.
 -The userspace program will call open, read, write, ioctl, which will invoke the kernel to do sys_open, sys_read, sys_write, and sys_ioctl. When these sys 
 calls are executed by the kernel, the file operations struct within the kernel module will direct the kernel to execute the associated function then return.
 
+The BeagleBone Black (BBB) uses a memory-mapped UART rather than I/O-mapped like traditional x86 systems.
+ 
+    The BBB is based on the AM335x SoC (TI Sitara series), which features memory-mapped UART peripherals.
+    It has 6 UARTs (UART0 to UART5), each mapped to a specific physical memory address.
+    Each UART has a register set mapped into the SoC's memory space.
 
+Memory-Mapped Base Addresses for BBB UARTs
+UART	Base Address
+UART0	0x44E09000
+UART1	0x48022000
+UART2	0x48024000
+UART3	0x48026000
+UART4	0x48028000
+UART5	0x4802A000
+
+
+Since UART on BBB is memory-mapped, you must:
+
+    Map the physical UART base address to a virtual address using ioremap().
+    Read/write to UART registers using readl() and writel().
+    Enable the UART module via PRCM (Power, Reset, and Clock Management) if needed.
+
+Example: Writing a Character to UART
+
+#include <linux/io.h>
+#include <linux/delay.h>
+
+#define UART_BASE  0x48022000  // UART1 Base Address on BBB
+#define UART_THR   0x00        // Transmit Holding Register
+#define UART_LSR   0x14        // Line Status Register
+#define UART_LSR_THRE  0x20    // Transmit Holding Register Empty flag
+
+void __iomem *uart_base;
+
+// Function to write a character to UART
+static void uart_write_char(char c)
+{
+    // Wait until the UART is ready
+    while (!(readl(uart_base + UART_LSR) & UART_LSR_THRE))
+        udelay(10);
+
+    // Write the character
+    writel(c, uart_base + UART_THR);
+}
+
+// Function to initialize the UART in the kernel module
+static int __init uart_init(void)
+{
+    uart_base = ioremap(UART_BASE, 0x1000);
+    if (!uart_base)
+    {
+        printk(KERN_ERR "Failed to map UART memory\n");
+        return -ENOMEM;
+    }
+
+    printk(KERN_INFO "BBB UART Initialized\n");
+    return 0;
+}
+
+// Function to clean up the module
+static void __exit uart_exit(void)
+{
+    if (uart_base)
+        iounmap(uart_base);
+
+    printk(KERN_INFO "BBB UART Unloaded\n");
+}
+
+module_init(uart_init);
+module_exit(uart_exit);
+MODULE_LICENSE("GPL");
+
+
+Key Takeaways
+
+    BBB UART is memory-mapped, not I/O-mapped like x86.
+    Use ioremap() to access UART registers.
+    Use readl() / writel() instead of inb() / outb().
+    Ensure PRCM is configured properly (powering on the UART).
 
 
  

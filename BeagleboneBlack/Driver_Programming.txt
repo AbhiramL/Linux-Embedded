@@ -54,6 +54,13 @@ end.
 
 3. Create a directory in the home directory '~' for your modules, something like kernMods/moduleName
 
+4. If permission errors occur in tmp directories when you are compiling, do:
+
+sudo chown -R $USER:$USER /home/abhiram/kernMods/moduleFolderName
+chmod -R u+rwX /home/abhiram/kernMods/moduleFolderName
+
+5. The code in the kernel directories of the github are for kernel 6.6.32, certain code may not be compatible with earlier kernels.
+
 
 --Developing Hello module--
 

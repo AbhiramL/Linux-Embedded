@@ -45,23 +45,24 @@ static const struct file_operations uart_fops = {
 static void send_uart_message(const char *message)
 {
     struct file *uart_file;
-    mm_segment_t old_fs;
     ssize_t written;
+    loff_t position = 0;    
 
     uart_file = filp_open("/dev/ttyS0", O_WRONLY | O_NOCTTY, 0); // Change to your UART port
-    if (IS_ERR(uart_file)) {
+
+    if (IS_ERR(uart_file)) 
+    {
         printk(KERN_ERR "UART Module: Failed to open serial port\n");
         return;
     }
 
-    old_fs = get_fs();
-    set_fs(KERNEL_DS);
+    written = kernel_write(uart_file, message, strlen(message), &position); // Write on Serial port
 
-    written = kernel_write(uart_file, message, strlen(message), &uart_file->f_pos);
     if (written < 0)
+    {
         printk(KERN_ERR "UART Module: Failed to write to serial port\n");
+    }
 
-    set_fs(old_fs);
     filp_close(uart_file, NULL);
 }
 
@@ -80,7 +81,7 @@ static int __init uart_init(void)
     printk(KERN_INFO "Registered UART device with major number %d\n", major_number);
 
     // Create device class
-    uart_class = class_create(THIS_MODULE, CLASS_NAME);
+    uart_class = class_create(CLASS_NAME);
     if (IS_ERR(uart_class))
     {
         unregister_chrdev(major_number, DEVICE_NAME);
@@ -109,9 +110,9 @@ static int __init uart_init(void)
         return -1;
     }
 
-    send_uart_message("UART Module Loaded.\n");
+    send_uart_message("(Ser)UART Module Loaded.\n");
 
-    printk(KERN_INFO "UART Module Loaded.\n");
+    printk(KERN_INFO "(Kern)UART Module Loaded.\n");
     return 0;
 }
 
@@ -125,7 +126,9 @@ static void __exit uart_exit(void)
     class_destroy(uart_class);
     unregister_chrdev(major_number, DEVICE_NAME);
 
-    printk(KERN_INFO "UART Module Unloaded.\n");
+    send_uart_message("(Ser)UART Module Unloaded.\n");
+
+    printk(KERN_INFO "(Kern)UART Module Unloaded.\n");
 }
 
 // Open function

@@ -5,7 +5,8 @@
 #include <linux/uaccess.h>
 #include <linux/cdev.h>
 #include <linux/device.h>
-
+#include <linux/io.h>
+#include <linux/delay.h>
 #include <linux/serial.h>
 #include <linux/tty.h>
 #include <linux/tty_driver.h>
@@ -14,6 +15,10 @@
 #define DEVICE_NAME "AL_UART"
 #define CLASS_NAME  "my_uart_module"
 #define UART_BUFFER_SIZE 256
+#define UART_BASE  0x48022000  // UART1 Base Address on BBB
+#define UART_THR   0x00        // Transmit Holding Register
+#define UART_LSR   0x14        // Line Status Register
+#define UART_LSR_THRE  0x20    // Transmit Holding Register Empty flag
 
 static char uart_buffer[UART_BUFFER_SIZE];
 
@@ -24,11 +29,16 @@ static struct device *uart_device = NULL;
 static struct cdev uart_cdev;
 
 // Function prototypes
+static void write_uart_char(char c);
+static void write_uart_string(const char *str);
+static void send_uart_message(const char *message);
 static int uart_open(struct inode *inode, struct file *file);
 static int uart_release(struct inode *inode, struct file *file);
 static ssize_t uart_read(struct file *file, char __user *buf, size_t count, loff_t *ppos);
 static ssize_t uart_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos);
 static long uart_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+
+void __iomem *uart_base;
 
 // Define file operations structure
 static const struct file_operations uart_fops = {
@@ -41,7 +51,27 @@ static const struct file_operations uart_fops = {
 };
 
 
-//uart message writing function
+// Function to write a character to UART instead of using default driver
+static void write_uart_char(char c)
+{
+    // Wait until the UART is ready
+    while (!(readl(uart_base + UART_LSR) & UART_LSR_THRE))
+        udelay(10);
+
+    // Write the character
+    writel(c, uart_base + UART_THR);
+}
+
+static void uart_write_string(const char *str)
+{
+    while (*str)  // Loop until the null terminator is reached
+    {
+        write_uart_char(*str);  // Write each character
+        str++;  // Move to the next character
+    }
+}
+
+//uart message writing function using default driver
 static void send_uart_message(const char *message)
 {
     struct file *uart_file;
@@ -110,15 +140,30 @@ static int __init uart_init(void)
         return -1;
     }
 
-    send_uart_message("(Ser)UART Module Loaded.\n");
+    // Init UART character write by mapping register address
+    uart_base = ioremap(UART_BASE, 0x1000);
+    if (!uart_base)
+    {
+        printk(KERN_ERR "Failed to map UART memory\n");
+        return -ENOMEM;
+    }
 
     printk(KERN_INFO "(Kern)UART Module Loaded.\n");
+    
+    send_uart_message("(Ser)UART Module Loaded.\n");
+
+    write_uart_string("Hello Serial World\n");
+
     return 0;
 }
 
 static void __exit uart_exit(void)
 {
     printk(KERN_INFO "UART Module is being unloaded...\n");
+    
+    send_uart_message("(Ser)UART Module is being unloaded.\n");
+
+    write_uart_string("Bye Serial World\n");
 
     // Clean up character device
     cdev_del(&uart_cdev);
@@ -126,9 +171,12 @@ static void __exit uart_exit(void)
     class_destroy(uart_class);
     unregister_chrdev(major_number, DEVICE_NAME);
 
-    send_uart_message("(Ser)UART Module Unloaded.\n");
-
-    printk(KERN_INFO "(Kern)UART Module Unloaded.\n");
+    if (uart_base)
+    {
+        iounmap(uart_base);
+    }
+    
+    printk(KERN_INFO "(Kern)UART Module Unloaded.\n");    
 }
 
 // Open function

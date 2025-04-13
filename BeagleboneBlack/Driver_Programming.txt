@@ -243,5 +243,6 @@ Key Takeaways
 
 
  
-
+1. Current version of uartMod will use the device driver that is already used by BBB for the uart ports. The kernel module calls the driver which has the uart port provisioned to it by the linux kernel. 
+2. test by loading module using insmod and running : ./userPgrm "Hello" to send hello to uart port.
 

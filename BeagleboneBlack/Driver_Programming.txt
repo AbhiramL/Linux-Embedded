@@ -141,7 +141,7 @@ export CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
 
 
 --UART Module--
-
+--Version 1--
 Before starting to program the module, keep in mind a userspace program will drive the driver/kernel module:
 
 Developing a Kernel module for operation of the UART port:
@@ -243,6 +243,24 @@ Key Takeaways
 
 
  
-1. Current version of uartMod will use the device driver that is already used by BBB for the uart ports. The kernel module calls the driver which has the uart port provisioned to it by the linux kernel. 
-2. test by loading module using insmod and running : ./userPgrm "Hello" to send hello to uart port.
+1. Version 1 of uartMod.c will use kernel_write, which sends data to /dev/ttyS1, the UART driver takes over
+and performs the necessary hardware-level operations to transmit the data via the UART's TX pin. kernel_write
+itself does not access hardware registers like THR (Transmit Holding Register) or LSR (Line Status Register).
+Those operations are encapsulated by the UART driver, which abstracts the hardware access from the user/
+kernel space. 
 
+2. Test version 1 by loading module using insmod and running : ./userPgrm "Hello" to send hello to uart1 port.
+compile with:
+export PATH=$HOME/buildroot-2024.11.1/output/host/bin:$PATH     <--change buildroot version if needed
+export ARCH=arm
+export CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
+make
+
+
+--Version 2--
+Modify DTS file:
+1. Build buildroot to have access to dts and dtb files.
+2. Copy the code in am335x-boneblack-custom.dts to the am335x-boneblack.dts file at:
+    buildroot/output/build/linux-custom/arch/arm/boot/dts/ti/omap
+3. Navigate to buildroot/ run "make linux-rebuild", then "make". The am335x-boneblack.dtb is the 
+file to use for BBB's linux system.

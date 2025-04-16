@@ -26,7 +26,7 @@ static void send_uart_message(const char *message);   // Function to send a mess
 static void uart_write_string(const char *str);
 static int uart_open(struct inode *inode, struct file *file); // Open function
 static int uart_release(struct inode *inode, struct file *file); // Release function
-static ssize_t uart_write(struct file *file, unsigned int cmd, unsigned long arg); // Write function
+static ssize_t uart_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos);  // Write function
 static long uart_ioctl(struct file *file, unsigned int cmd, unsigned long arg); // IOCTL function
 
 // Define file operations structure
@@ -130,9 +130,6 @@ static void __exit uart_exit(void)
     class_destroy(uart_class);
     unregister_chrdev(major_number, DEVICE_NAME);
 
-    // Unmap the uart 1 from virtual address
-    iounmap(uart_virtual_addr);
-
     printk(KERN_INFO "(KernMod)UART Module Unloaded.\n");   
 }
 
@@ -151,28 +148,24 @@ static int uart_release(struct inode *inode, struct file *file)
 }
 
 // Write function
-static ssize_t uart_write(struct file *file, unsigned int cmd, unsigned long arg)
+static ssize_t uart_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos)
 {
     char message[UART_BUFFER_SIZE];
-
-    switch (cmd) 
+    
+    //if count < UART_BUF_SIZE-1, then len=count, else len=UART_BUF_SIZE-1
+    size_t len = (count < UART_BUFFER_SIZE -1) ? count : (UART_BUFFER_SIZE - 1); 
+    
+    if (copy_from_user(message, (char __user *)arg, UART_BUFFER_SIZE)) 
     {
-    case SEND_MESSAGE_IOCTL:
-        if (copy_from_user(message, (char __user *)arg, UART_BUFFER_SIZE)) 
-        {
-            printk(KERN_ERR "(KernMod)Failed to copy message from user\n");
-            return -EFAULT;
-        }
-        send_uart_message(message);
-        printk(KERN_INFO "(KernMod)Message sent to serial port 1 via WRITE: %s\n", message);
-        break;
-    default:
-        printk(KERN_WARNING "(KernMod)Unknown WRITE command\n");
-        return -EINVAL;
+        printk(KERN_ERR "(KernMod)Failed to copy message from user\n");
+        return -EFAULT;
     }
+    message[len] = '\0'; // Null-terminate the string
+    
+    send_uart_message(message);
+    printk(KERN_INFO "(KernMod)Message sent to serial port 1 via WRITE: %s\n", message);
 
-    return 0;
-
+    return count;
 }
 
 // IOCTL function

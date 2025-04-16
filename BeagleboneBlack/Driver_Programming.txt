@@ -259,8 +259,51 @@ make
 
 --Version 2--
 Modify DTS file:
-1. Build buildroot to have access to dts and dtb files.
-2. Copy the code in am335x-boneblack-custom.dts to the am335x-boneblack.dts file at:
-    buildroot/output/build/linux-custom/arch/arm/boot/dts/ti/omap
+1. Build buildroot with at least the command 'make beaglebone_defconfig' to have access to dts and dtb files. 
+The directory buildroot/output/build/linux-custom/arch/arm/boot/dts/ti/omap will have the am335x-boneblack.dts
+file to modify. 
+
+2. Copy the following code to am335x-boneblack.dts underneath the definition for cpu0_op_table. Save the file.
+&am33xx_pinmux { 
+    uart1_pins: uart1-pins {
+		pinctrl-single,pins = <
+            AM33XX_PADCONF(AM335X_PIN_UART1_RXD, PIN_INPUT_PULLUP, MUX_MODE0)
+            AM33XX_PADCONF(AM335X_PIN_UART1_TXD, PIN_OUTPUT_PULLDOWN, MUX_MODE0)
+		>;
+	};
+};
+
+&uart1 {
+    pinctrl-names = "default";
+	pinctrl-0 = <&uart1_pins>;
+
+	status = "okay";
+	symlink = "bone/uart/1";
+};
+
+-The configuration of the uart 1 was copied from the configuration of uart 0 in am335x-bone-common.dtsi. 
+Any new subnodes you add (for example, your uart2_pins) will be added to the existing am33xx_pinmux node.
+
+-Overriding Properties: If you specify properties or subnode names that already exist in included files, your 
+DTS file’s version will override the corresponding definitions from the dtsi.
+
+-The am335x-bone-common.dtsi includes am335x-bbb-bone-buses which includes the am33xx.h header file containing
+pin defines. This file is located at buildroot/output/build/linux-custom/include/dt-bindings/pinctrl/.
+
+-Uart 1 was used since the pins were already defined in the am33xx.h file.
+
+
 3. Navigate to buildroot/ run "make linux-rebuild", then "make". The am335x-boneblack.dtb is the 
 file to use for BBB's linux system.
+
+4. To test the new am335x-boneblack.dtb, place the file in the boot section of the BBB emmc or sd card boot 
+partition and boot the linux system on BBB. Use the following commands to test the uart 1 ports(P9_24 TX, P9_26 RX).
+
+-Check 'dmesg | grep ttyS' to see if uart 1 and 0 initialize. 
+
+-Use 'stty -a -F /dev/ttyS1' to confirm baud rate. Baud rate defaults to 9600 unless a change is made in the dts 
+file.
+
+-Set a baud rate temporarily with 'stty -F /dev/ttyS1 115200'
+
+-Send a string on the uart 1 port with 'echo "Hello" > /dev/ttyS1'

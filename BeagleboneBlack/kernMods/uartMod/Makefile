@@ -5,7 +5,7 @@ ARCH := arm
 CROSS_COMPILE := arm-buildroot-linux-gnueabihf-
 
 # Update this path to match your Buildroot output directory
-KERNEL_DIR ?= ~/buildroot-2024.11/output/build/linux-custom
+KERNEL_DIR ?= ~/buildroot-2024.11.1/output/build/linux-custom
 
 PWD := $(CURDIR)
 

@@ -241,9 +241,9 @@ Key Takeaways
     Use readl() / writel() instead of inb() / outb().
     Ensure PRCM is configured properly (powering on the UART).
 
-
+V1:
  
-1. Version 1 of uartMod.c will use kernel_write, which sends data to /dev/ttyS1, the UART driver takes over
+1. Version 1 of uartMod.c will use kernel_write, which sends data to /dev/ttyS0, the UART driver takes over
 and performs the necessary hardware-level operations to transmit the data via the UART's TX pin. kernel_write
 itself does not access hardware registers like THR (Transmit Holding Register) or LSR (Line Status Register).
 Those operations are encapsulated by the UART driver, which abstracts the hardware access from the user/
@@ -256,9 +256,9 @@ export ARCH=arm
 export CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
 make
 
+V2:
 
---Version 2--
-Modify DTS file:
+Modify DTS file to have access to UART 0 AND 1:
 1. Build buildroot with at least the command 'make beaglebone_defconfig' to have access to dts and dtb files. 
 The directory buildroot/output/build/linux-custom/arch/arm/boot/dts/ti/omap will have the am335x-boneblack.dts
 file to modify. 

@@ -11,27 +11,47 @@ int main(int argc, char *argv[])
 {
     int fd;
     char message[256];
-
-    if (argc != 2) 
-    {
-        fprintf(stderr, "(UserProgram)Usage: %s <message>\n", argv[0]);
+    
+    fd = open(DEVICE_FILE, O_RDWR);
+    if (fd < 0) {
+        perror("(UserProgram) Failed to open device file");
         return EXIT_FAILURE;
     }
+
+    printf("(UserProgram) Type your message below (type 'quit' to exit):\n");
 
     // Copy into message buffer
     snprintf(message, sizeof(message), "%s", argv[1]);
 
-    fd = open(DEVICE_FILE, O_RDWR);
-    if (fd < 0) {
-        perror("(UserProgram)Failed to open device file");
-        return EXIT_FAILURE;
-    }
-
-    if (write(fd, message, strlen(message)) < 0) 
+    while (1) 
     {
-        perror("(UserProgram)Failed to send message via WRITE");
-        close(fd);
-        return EXIT_FAILURE;
+        printf("> ");
+        
+        // Read user input from stdin
+        if (fgets(message, sizeof(message), stdin) == NULL) //blocking call
+        {
+            perror("(UserProgram) Error reading input");
+            break;
+        }
+
+        // Remove trailing newline from fgets
+        message[strcspn(message, "\n")] = '\0';
+
+        // Check for exit condition
+        if (strcmp(message, "quit") == 0) 
+        {
+            printf("(UserProgram) Exiting...\n");
+            break;
+        }
+
+        // Write the message to the device
+        if (write(fd, message, strlen(message)) < 0) 
+        {
+            perror("(UserProgram) Failed to send message via WRITE");
+            break;
+        }
+
+        printf("(UserProgram) Message sent successfully!\n");
     }
 
     close(fd);

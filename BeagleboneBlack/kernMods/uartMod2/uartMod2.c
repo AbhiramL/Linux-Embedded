@@ -111,7 +111,7 @@ static int __init uart_init(void)
     }
 
     printk(KERN_INFO "(KernMod)UART Module Loaded.\n");
-    send_uart_message("Hello Serial World...waiting 5 seconds...\n");
+    send_uart_message("Hello Serial World.\n");
     msleep(5000);
 
     return 0;

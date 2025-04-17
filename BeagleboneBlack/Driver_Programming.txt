@@ -306,4 +306,7 @@ file.
 
 -Set a baud rate temporarily with 'stty -F /dev/ttyS1 115200'
 
+-If you compiled the userPgrm.c, execute the userPgrm on BBB using './userPgrm' and you can send messages to UART,
+make sure that the UART module is loaded.
+
 -Send a string on the uart 1 port with 'echo "Hello" > /dev/ttyS1'

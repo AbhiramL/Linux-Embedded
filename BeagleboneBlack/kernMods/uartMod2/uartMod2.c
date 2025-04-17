@@ -15,7 +15,7 @@
 #define UART_BUFFER_SIZE 256              // Size of the buffer for UART communication
 #define SEND_MESSAGE_IOCTL 0x01           // Custom IOCTL command
 
-static char uart_buffer[UART_BUFFER_SIZE];    // Buffer to store data
+//static char uart_buffer[UART_BUFFER_SIZE];    // Buffer to store data
 static int major_number = -1;                 // Device major number
 static struct class *uart_class = NULL;       // Device class
 static struct device *uart_device = NULL;     // Device instance
@@ -23,7 +23,6 @@ static struct cdev uart_cdev;                 // Character device structure
 
 // Function prototypes
 static void send_uart_message(const char *message);   // Function to send a message via UART
-static void uart_write_string(const char *str);
 static int uart_open(struct inode *inode, struct file *file); // Open function
 static int uart_release(struct inode *inode, struct file *file); // Release function
 static ssize_t uart_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos);  // Write function
@@ -122,7 +121,7 @@ static int __init uart_init(void)
 static void __exit uart_exit(void)
 {
     printk(KERN_INFO "(KernMod)UART Module is being unloaded...\n");
-    uart_write_string("Bye Serial World.\n");
+    send_uart_message("Bye Serial World.\n");
 
     // Clean up character device
     cdev_del(&uart_cdev);
@@ -155,7 +154,7 @@ static ssize_t uart_write(struct file *file, const char __user *buf, size_t coun
     //if count < UART_BUF_SIZE-1, then len=count, else len=UART_BUF_SIZE-1
     size_t len = (count < UART_BUFFER_SIZE -1) ? count : (UART_BUFFER_SIZE - 1); 
     
-    if (copy_from_user(message, (char __user *)arg, UART_BUFFER_SIZE)) 
+    if (copy_from_user(message, buf, len)) 
     {
         printk(KERN_ERR "(KernMod)Failed to copy message from user\n");
         return -EFAULT;

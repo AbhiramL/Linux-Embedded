@@ -142,9 +142,8 @@ export CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
 
 --UART Module--
 --Version 1--
-Before starting to program the module, keep in mind a userspace program will drive the driver/kernel module:
 
-Developing a Kernel module for operation of the UART port:
+Developing a Kernel module for simply printing a character to UART 0 port:
 
 -Develop a simple kernel module with functions that can be mapped to libc system calls:
 Open - which can be mapped to initialization of the UART port
@@ -183,7 +182,7 @@ Since UART on BBB is memory-mapped, you must:
     Read/write to UART registers using readl() and writel().
     Enable the UART module via PRCM (Power, Reset, and Clock Management) if needed.
 
-Example: Writing a Character to UART
+Working Example: Writing a Character to UART
 
 #include <linux/io.h>
 #include <linux/delay.h>
@@ -238,10 +237,8 @@ Key Takeaways
 
     BBB UART is memory-mapped, not I/O-mapped like x86.
     Use ioremap() to access UART registers.
-    Use readl() / writel() instead of inb() / outb().
-    Ensure PRCM is configured properly (powering on the UART).
 
-V1:
+V1: Reading and Writing to UART 0
  
 1. Version 1 of uartMod.c will use kernel_write, which sends data to /dev/ttyS0, the UART driver takes over
 and performs the necessary hardware-level operations to transmit the data via the UART's TX pin. kernel_write
@@ -249,19 +246,12 @@ itself does not access hardware registers like THR (Transmit Holding Register) o
 Those operations are encapsulated by the UART driver, which abstracts the hardware access from the user/
 kernel space. 
 
-2. Test version 1 by loading module using insmod and running : ./userPgrm "Hello" to send hello to uart1 port.
-compile with:
-export PATH=$HOME/buildroot-2024.11.1/output/host/bin:$PATH     <--change buildroot version if needed
-export ARCH=arm
-export CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
-make
-
-V2:
+V2: Reading from UART 0 and Writing to UART 1
 
 Modify DTS file to have access to UART 0 AND 1:
-1. Build buildroot with at least the command 'make beaglebone_defconfig' to have access to dts and dtb files. 
-The directory buildroot/output/build/linux-custom/arch/arm/boot/dts/ti/omap will have the am335x-boneblack.dts
-file to modify. 
+1. Build buildroot with at least the command 'make beaglebone_defconfig' to have access to dts files and the 
+cross-compiler. The directory buildroot/output/build/linux-custom/arch/arm/boot/dts/ti/omap will have the 
+am335x-boneblack.dts file to modify. 
 
 2. Copy the following code to am335x-boneblack.dts underneath the definition for cpu0_op_table. Save the file.
 &am33xx_pinmux { 
@@ -282,7 +272,7 @@ file to modify.
 };
 
 -The configuration of the uart 1 was copied from the configuration of uart 0 in am335x-bone-common.dtsi. 
-Any new subnodes you add (for example, your uart2_pins) will be added to the existing am33xx_pinmux node.
+Any new subnodes you add (for example, the definition of uart 1 pins) will be added to the existing am33xx_pinmux node.
 
 -Overriding Properties: If you specify properties or subnode names that already exist in included files, your 
 DTS file’s version will override the corresponding definitions from the dtsi.
@@ -293,7 +283,7 @@ pin defines. This file is located at buildroot/output/build/linux-custom/include
 -Uart 1 was used since the pins were already defined in the am33xx.h file.
 
 
-3. Navigate to buildroot/ run "make linux-rebuild", then "make". The am335x-boneblack.dtb is the 
+3. After saving the dts file, navigate to buildroot/ run "make linux-rebuild", then "make". The am335x-boneblack.dtb is the 
 file to use for BBB's linux system.
 
 4. To test the new am335x-boneblack.dtb, place the file in the boot section of the BBB emmc or sd card boot 
@@ -306,7 +296,11 @@ file.
 
 -Set a baud rate temporarily with 'stty -F /dev/ttyS1 115200'
 
--If you compiled the userPgrm.c, execute the userPgrm on BBB using './userPgrm' and you can send messages to UART,
+-Send a string on the uart 1 port with 'echo "Hello" > /dev/ttyS1'
+
+5. If you compiled the userPgrm.c, execute the userPgrm on BBB using './userPgrm' and you can send messages to UART 1,
 make sure that the UART module is loaded.
 
--Send a string on the uart 1 port with 'echo "Hello" > /dev/ttyS1'
+
+
+

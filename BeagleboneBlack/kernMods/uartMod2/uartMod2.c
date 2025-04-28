@@ -8,7 +8,7 @@
 #include <linux/file.h>
 #include <linux/io.h>
 #include <linux/delay.h>
-
+#include <linux/spinlock.h>  // For spinlock_t and spin_lock()
 
 #define DEVICE_NAME "AL_UART"             // Name of the device
 #define CLASS_NAME  "my_uart_module"      // Name of the class for the device
@@ -21,11 +21,20 @@ static struct class *uart_class = NULL;       // Device class
 static struct device *uart_device = NULL;     // Device instance
 static struct cdev uart_cdev;                 // Character device structure
 
+// UART device state structure
+struct uart_device {
+    char rx_buffer[UART_BUFFER_SIZE]; // Holds recived data
+    size_t head;  
+    size_t tail;
+    spinlock_t lock;  // Protects access to buffer
+}
+
 // Function prototypes
 static void send_uart_message(const char *message);   // Function to send a message via UART
 static int uart_open(struct inode *inode, struct file *file); // Open function
 static int uart_release(struct inode *inode, struct file *file); // Release function
 static ssize_t uart_write(struct file *file, const char __user *buf, size_t count, loff_t *ppos);  // Write function
+static ssize_t uart_read(struct file *file, char __user *buf, size_t count, loff_t *f_pos)
 static long uart_ioctl(struct file *file, unsigned int cmd, unsigned long arg); // IOCTL function
 
 // Define file operations structure
@@ -34,6 +43,7 @@ static const struct file_operations uart_fops = {
     .open = uart_open,
     .release = uart_release,
     .write = uart_write,
+    .read = uart_read,
     .unlocked_ioctl = uart_ioctl,  // Updated to modern unlocked_ioctl
 };
 
@@ -167,6 +177,81 @@ static ssize_t uart_write(struct file *file, const char __user *buf, size_t coun
     return count;
 }
 
+static ssize_t uart_read(struct file *file, char __user *buf, size_t count, loff_t *f_pos)
+{
+    struct uart_device *dev = file->private_data;
+    ssize_t bytes_read = 0;
+    size_t available_bytes, first_part, second_part;
+
+    // Ensure that the device context is available.
+    if (!dev)
+    {
+        return -EFAULT;
+    }
+    
+    // Lock the device state while accessing the ring buffer. 
+    spin_lock(&dev->lock);
+
+    // Calculate the number of bytes available in the Rx buffer.
+    // This assumes a circular (ring) buffer implementation.
+    if (dev->head >= dev->tail)
+    {
+        available_bytes = dev->head - dev->tail;
+    }
+    else
+    {
+        available_bytes = UART_BUFFER_SIZE - dev->tail + dev->head;
+    }
+
+    // If no data is available, either block (using wait queues) or return non-blocking.
+    // Here we return -EAGAIN if the file was opened with non-blocking I/O.
+    if (available_bytes == 0) 
+    {
+        spin_unlock(&dev->lock);
+        return (file->f_flags & O_NONBLOCK) ? -EAGAIN : 0;  // Replace 0 with wait queue logic for blocking I/O.
+    }
+
+    // Limit the amount read to what is available.
+    if (count > available_bytes)
+    {
+        count = available_bytes;
+    }
+
+    // Handle the possibility that the data wraps around the end of the ring buffer.
+    if (dev->tail + count <= UART_BUFFER_SIZE) 
+    {
+        // Data is contiguous.
+        if (copy_to_user(buf, dev->rx_buffer + dev->tail, count))  //copy_to_user will transfer data from kernel space to user space
+        {
+            spin_unlock(&dev->lock);
+            return -EFAULT;
+        }
+        dev->tail = (dev->tail + count) % UART_BUFFER_SIZE;
+        bytes_read = count;
+    } 
+    else 
+    {
+        // Data is split in two parts.
+        first_part = UART_BUFFER_SIZE - dev->tail;
+        second_part = count - first_part;
+
+        if (copy_to_user(buf, dev->rx_buffer + dev->tail, first_part)) //copy_to_user will transfer data from kernel space to user space
+        {
+            spin_unlock(&dev->lock);
+            return -EFAULT;
+        }
+        if (copy_to_user(buf + first_part, dev->rx_buffer, second_part)) 
+        {
+            spin_unlock(&dev->lock);
+            return -EFAULT;
+        }
+        dev->tail = second_part;  // Wrap-around completed.
+        bytes_read = count;
+    }
+
+    spin_unlock(&dev->lock);
+    return bytes_read;
+}
 // IOCTL function
 static long uart_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {

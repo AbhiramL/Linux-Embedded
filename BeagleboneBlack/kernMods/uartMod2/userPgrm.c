@@ -10,7 +10,9 @@
 int main(int argc, char *argv[])
 {
     int fd;
+    char buffer[100];  // Buffer to store read data
     char message[256];
+    ssize_t bytes_read;
     
     fd = open(DEVICE_FILE, O_RDWR);
     if (fd < 0) {
@@ -52,6 +54,18 @@ int main(int argc, char *argv[])
         }
 
         printf("(UserProgram) Message sent successfully!\n");
+
+        // Read data from the UART device
+        bytes_read = read(fd, buffer, sizeof(buffer) - 1);
+        if (bytes_read < 0) 
+        {
+            perror("Failed to read from device");
+            close(fd);
+            return EXIT_FAILURE;
+        }
+        // Null-terminate and print the received data
+        buffer[bytes_read] = '\0';
+        printf("Received: %s\n", buffer);
     }
 
     close(fd);

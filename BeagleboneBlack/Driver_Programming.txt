@@ -301,6 +301,9 @@ file.
 5. If you compiled the userPgrm.c, execute the userPgrm on BBB using './userPgrm' and you can send messages to UART 1,
 make sure that the UART module is loaded.
 
-
+-Remember to do the following when running make to compile :
+export PATH=$HOME/buildroot-2024.11.1/output/host/bin:$PATH     <--change buildroot version if needed
+export ARCH=arm
+export CROSS_COMPILE=arm-buildroot-linux-gnueabihf-
 
 
